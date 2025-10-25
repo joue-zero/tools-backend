@@ -46,7 +46,7 @@ tools-backend/
 
 ### Prerequisites
 
-- Go 1.21 or higher
+- Go 1.25 or higher
 - MongoDB 4.4 or higher
 - Git
 
