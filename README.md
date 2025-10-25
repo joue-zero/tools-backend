@@ -107,21 +107,8 @@ mongod
 # Windows PowerShell
 .\script.ps1
 
-# Linux/Mac
-chmod +x start.sh
-./start.sh
 ```
-
-#### Option 2: Using Make (Cross-platform)
-```bash
-# Setup everything
-make setup
-
-# Run the application
-make run
-```
-
-#### Option 3: Manual Commands
+#### Option 2: manual Commands
 ```bash
 # Install dependencies
 go mod tidy
@@ -136,7 +123,7 @@ docker run -d -p 27017:27017 --name mongodb mongo:latest
 go run main.go
 ```
 
-#### Option 4: Docker Compose (Full Stack)
+#### Option 3: Docker Compose (Full Stack)
 ```bash
 # Start everything with Docker
 docker-compose up -d
@@ -156,16 +143,6 @@ The server will start on `http://localhost:8080`
 | POST | `/api/v1/register` | Register new user | No |
 | POST | `/api/v1/login` | User login | No |
 
-### Products
-
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| GET | `/api/v1/products` | Get all products | No |
-| GET | `/api/v1/products/:id` | Get single product | No |
-| POST | `/api/v1/products` | Create product | Yes |
-| PUT | `/api/v1/products/:id` | Update product | Yes |
-| DELETE | `/api/v1/products/:id` | Delete product | Yes |
-
 ### Health Check
 
 | Method | Endpoint | Description |
@@ -182,8 +159,7 @@ curl -X POST http://localhost:8080/api/v1/register \
   -d '{
     "name": "John Doe",
     "email": "john@example.com",
-    "password": "password123",
-    "role": "user"
+    "password": "password123"
   }'
 ```
 
@@ -197,44 +173,6 @@ curl -X POST http://localhost:8080/api/v1/login \
     "password": "password123"
   }'
 ```
-
-### 3. Create a Product (with authentication)
-
-```bash
-curl -X POST http://localhost:8080/api/v1/products \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -d '{
-    "name": "Laptop",
-    "description": "High-performance laptop",
-    "price": 999.99,
-    "category": "Electronics",
-    "stock": 10,
-    "image_url": "https://example.com/laptop.jpg",
-    "is_active": true
-  }'
-```
-
-### 4. Get Products with Pagination
-
-```bash
-curl "http://localhost:8080/api/v1/products?page=1&limit=10&category=Electronics&search=laptop"
-```
-
-## 🏗️ Laravel vs Go Comparison
-
-| Laravel Concept | Go Implementation | Description |
-|----------------|-------------------|-------------|
-| `php artisan serve` | `go run main.go` | Start development server |
-| `.env` file | `config/config.go` | Environment configuration |
-| `app/Models/` | `models/` | Data models with structs |
-| `app/Http/Controllers/` | `controllers/` | Business logic controllers |
-| `app/Http/Middleware/` | `middleware/` | Request middleware |
-| `routes/web.php` | `routes/routes.go` | Route definitions |
-| `Request` validation | `utils/validation.go` | Input validation |
-| `Response::json()` | `utils/response.go` | API responses |
-| `Auth::user()` | JWT middleware | User authentication |
-| `DB::table()` | `database.GetCollection()` | Database operations |
 
 ## 🔒 Authentication & Authorization
 
@@ -255,16 +193,6 @@ The API uses JWT (JSON Web Tokens) for authentication:
   "iat": 1234567890
 }
 ```
-
-## 🛡️ Security Features
-
-- **Password Hashing** using bcrypt
-- **JWT Token** authentication
-- **CORS** protection
-- **Input Validation** and sanitization
-- **Role-based Access Control**
-- **Environment Variables** for sensitive data
-
 ## 📊 Database Schema
 
 ### Users Collection
@@ -275,29 +203,11 @@ The API uses JWT (JSON Web Tokens) for authentication:
   "name": "string",
   "email": "string (unique)",
   "password": "string (hashed)",
-  "role": "user|admin",
   "created_at": "datetime",
   "updated_at": "datetime"
 }
 ```
-
-### Products Collection
-
-```json
-{
-  "_id": "ObjectId",
-  "name": "string",
-  "description": "string",
-  "price": "number",
-  "category": "string",
-  "stock": "number",
-  "image_url": "string",
-  "is_active": "boolean",
-  "created_at": "datetime",
-  "updated_at": "datetime"
-}
 ```
-
 ## 🚀 Production Deployment
 
 ### 1. Build the Application
@@ -320,51 +230,6 @@ export PORT="8080"
 
 ```bash
 ./tools-backend
-```
-
-## 🧪 Testing
-
-### Manual Testing with cURL
-
-```bash
-# Health check
-curl http://localhost:8080/health
-
-# Get products
-curl http://localhost:8080/api/v1/products
-
-# Register user
-curl -X POST http://localhost:8080/api/v1/register \
-  -H "Content-Type: application/json" \
-  -d '{"name":"Test User","email":"test@example.com","password":"password123","role":"user"}'
-```
-
-## 📝 Development Commands
-
-### Quick Commands (Using Make)
-
-```bash
-# Show all available commands
-make help
-
-# Setup everything (dependencies + MongoDB)
-make setup
-
-# Run the application
-make run
-
-# Development with hot reload
-make dev
-
-# Start/stop MongoDB
-make docker-start
-make docker-stop
-
-# Run tests
-make test
-
-# Clean build files
-make clean
 ```
 
 ### Manual Development Commands
@@ -435,14 +300,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
    - Change PORT in `.env` file
    - Kill existing process using the port
 
-### Getting Help
-
-- Check the logs for detailed error messages
-- Verify all environment variables are set
-- Ensure MongoDB is accessible
-- Check Go version compatibility
-
----
 
 **Happy Coding! 🎉**
 
