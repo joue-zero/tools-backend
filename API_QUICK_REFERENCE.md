@@ -25,12 +25,12 @@ POST /api/v1/login
 
 ---
 
-### 📋 RSVP Management Routes (Token Required)
+### 📋 Event Status Management Routes (Token Required)
 
 | Method | Endpoint                                           | Description                  | Who Can Use      |
 | ------ | -------------------------------------------------- | ---------------------------- | ---------------- |
-| POST   | `/api/v1/events/:id/rsvp`                          | Submit/update RSVP           | Event attendees  |
-| GET    | `/api/v1/events/:id/rsvp/status`                   | Get my RSVP status           | All participants |
+| POST   | `/api/v1/events/:id/status`                        | Submit/update event status   | Event attendees  |
+| GET    | `/api/v1/events/:id/status`                        | Get my event status          | All participants |
 | GET    | `/api/v1/events/:id/attendees`                     | View all attendees + summary | Organizer only   |
 | GET    | `/api/v1/events/:id/attendees/status?status=going` | Get attendees by status      | Organizer only   |
 
@@ -85,10 +85,10 @@ curl -X POST http://localhost:8080/api/v1/events/{eventId}/invite \
   }'
 ```
 
-### 4. Submit RSVP Response
+### 4. Submit Event Status Response
 
 ```bash
-curl -X POST http://localhost:8080/api/v1/events/{eventId}/rsvp \
+curl -X POST http://localhost:8080/api/v1/events/{eventId}/status \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"status": "going"}'
@@ -152,7 +152,7 @@ curl -X GET "http://localhost:8080/api/v1/events/{eventId}/attendees/status?stat
 
 ---
 
-## RSVP Status Values
+## Event Status Values
 
 - `going` - Will attend
 - `maybe` - Might attend
@@ -210,7 +210,7 @@ Content-Type: application/json (for POST/PUT requests)
 }
 ```
 
-### Submit RSVP
+### Submit Event Status
 
 ```json
 {
@@ -277,12 +277,12 @@ Content-Type: application/json (for POST/PUT requests)
 2. User A: POST /api/v1/login → Get JWT token
 3. User A: POST /api/v1/events → Create event (becomes organizer)
 4. User A: POST /api/v1/events/{id}/invite → Invite User B & C
-5. User B: POST /api/v1/events/{id}/rsvp → Submit "going"
-6. User C: POST /api/v1/events/{id}/rsvp → Submit "maybe"
+5. User B: POST /api/v1/events/{id}/status → Submit "going"
+6. User C: POST /api/v1/events/{id}/status → Submit "maybe"
 7. User A: GET /api/v1/events/{id}/attendees → View summary (1 going, 1 maybe)
 8. User A: GET /api/v1/events/{id}/attendees/status?status=going → See who's going
 9. User A: PUT /api/v1/events/{id} → Update event details
-10. User A: DELETE /api/v1/events/{id} → Delete event (removes RSVPs too)
+10. User A: DELETE /api/v1/events/{id} → Delete event (removes event statuses too)
 ```
 
 ---

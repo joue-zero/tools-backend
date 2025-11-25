@@ -13,12 +13,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type RSVPController struct{}
+type EventStatusController struct{}
 
-// CreateOrUpdateRSVP creates or updates an RSVP response for an event
-func (rc *RSVPController) CreateOrUpdateRSVP(c *gin.Context) {
+// CreateOrUpdateEventStatus creates or updates an event status response for an event
+func (esc *EventStatusController) CreateOrUpdateEventStatus(c *gin.Context) {
 	eventID := c.Param("id")
-	var req models.RSVPRequest
+	var req models.EventStatusRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		utils.ErrorResponse(c, 400, "Invalid request data")
@@ -83,20 +83,20 @@ func (rc *RSVPController) CreateOrUpdateRSVP(c *gin.Context) {
 		return
 	}
 
-	// Check if RSVP already exists
-	rsvpCollection := database.GetCollection("rsvps")
-	var existingRSVP models.RSVP
+	// Check if EventStatus already exists
+	eventStatusCollection := database.GetCollection("event_statuses")
+	var existingEventStatus models.EventStatus
 
-	err = rsvpCollection.FindOne(context.TODO(), bson.M{
+	err = eventStatusCollection.FindOne(context.TODO(), bson.M{
 		"event_id": eventObjectID,
 		"user_id":  userObjectID,
-	}).Decode(&existingRSVP)
+	}).Decode(&existingEventStatus)
 
 	if err == nil {
-		// RSVP exists, update it
-		_, err = rsvpCollection.UpdateOne(
+		// EventStatus exists, update it
+		_, err = eventStatusCollection.UpdateOne(
 			context.TODO(),
-			bson.M{"_id": existingRSVP.ID},
+			bson.M{"_id": existingEventStatus.ID},
 			bson.M{"$set": bson.M{
 				"status":     req.Status,
 				"updated_at": time.Now(),
@@ -104,16 +104,16 @@ func (rc *RSVPController) CreateOrUpdateRSVP(c *gin.Context) {
 		)
 
 		if err != nil {
-			utils.ErrorResponse(c, 500, "Failed to update RSVP")
+			utils.ErrorResponse(c, 500, "Failed to update event status")
 			return
 		}
 
-		existingRSVP.Status = req.Status
-		existingRSVP.UpdatedAt = time.Now()
-		utils.SuccessResponse(c, 200, "RSVP updated successfully", existingRSVP.ToResponse())
+		existingEventStatus.Status = req.Status
+		existingEventStatus.UpdatedAt = time.Now()
+		utils.SuccessResponse(c, 200, "Event status updated successfully", existingEventStatus.ToResponse())
 	} else if err == mongo.ErrNoDocuments {
-		// Create new RSVP
-		newRSVP := models.RSVP{
+		// Create new EventStatus
+		newEventStatus := models.EventStatus{
 			EventID:   eventObjectID,
 			UserID:    userObjectID,
 			Status:    req.Status,
@@ -121,21 +121,21 @@ func (rc *RSVPController) CreateOrUpdateRSVP(c *gin.Context) {
 			UpdatedAt: time.Now(),
 		}
 
-		result, err := rsvpCollection.InsertOne(context.TODO(), newRSVP)
+		result, err := eventStatusCollection.InsertOne(context.TODO(), newEventStatus)
 		if err != nil {
-			utils.ErrorResponse(c, 500, "Failed to create RSVP")
+			utils.ErrorResponse(c, 500, "Failed to create event status")
 			return
 		}
 
-		newRSVP.ID = result.InsertedID.(primitive.ObjectID)
-		utils.SuccessResponse(c, 201, "RSVP created successfully", newRSVP.ToResponse())
+		newEventStatus.ID = result.InsertedID.(primitive.ObjectID)
+		utils.SuccessResponse(c, 201, "Event status created successfully", newEventStatus.ToResponse())
 	} else {
-		utils.ErrorResponse(c, 500, "Failed to check RSVP status")
+		utils.ErrorResponse(c, 500, "Failed to check event status")
 	}
 }
 
-// GetEventAttendees returns all attendees and their RSVP statuses for an event (organizer only)
-func (rc *RSVPController) GetEventAttendees(c *gin.Context) {
+// GetEventAttendees returns all attendees and their event statuses for an event (organizer only)
+func (esc *EventStatusController) GetEventAttendees(c *gin.Context) {
 	eventID := c.Param("id")
 
 	eventObjectID, err := primitive.ObjectIDFromHex(eventID)
@@ -190,23 +190,23 @@ func (rc *RSVPController) GetEventAttendees(c *gin.Context) {
 		return
 	}
 
-	// Get all RSVPs for this event
-	rsvpCollection := database.GetCollection("rsvps")
-	cursor, err := rsvpCollection.Find(context.TODO(), bson.M{"event_id": eventObjectID})
+	// Get all event statuses for this event
+	eventStatusCollection := database.GetCollection("event_statuses")
+	cursor, err := eventStatusCollection.Find(context.TODO(), bson.M{"event_id": eventObjectID})
 	if err != nil {
 		utils.ErrorResponse(c, 500, "Failed to fetch attendees")
 		return
 	}
 	defer cursor.Close(context.TODO())
 
-	var rsvps []models.RSVPResponse
-	if err = cursor.All(context.TODO(), &rsvps); err != nil {
+	var eventStatuses []models.EventStatusResponse
+	if err = cursor.All(context.TODO(), &eventStatuses); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process attendees")
 		return
 	}
 
-	if len(rsvps) == 0 {
-		rsvps = []models.RSVPResponse{}
+	if len(eventStatuses) == 0 {
+		eventStatuses = []models.EventStatusResponse{}
 	}
 
 	// Group attendees by status
@@ -216,13 +216,13 @@ func (rc *RSVPController) GetEventAttendees(c *gin.Context) {
 		"maybe":         0,
 		"not_going":     0,
 		"no_response":   0,
-		"attendees":     rsvps,
+		"attendees":     eventStatuses,
 	}
 
-	rsvpStatusMap := make(map[primitive.ObjectID]models.RSVPStatus)
-	for _, rsvp := range rsvps {
-		rsvpStatusMap[rsvp.UserID] = rsvp.Status
-		switch rsvp.Status {
+	eventStatusMap := make(map[primitive.ObjectID]models.EventStatusValue)
+	for _, es := range eventStatuses {
+		eventStatusMap[es.UserID] = es.Status
+		switch es.Status {
 		case models.StatusGoing:
 			attendeesSummary["going"] = attendeesSummary["going"].(int) + 1
 		case models.StatusMaybe:
@@ -236,7 +236,7 @@ func (rc *RSVPController) GetEventAttendees(c *gin.Context) {
 	noResponseCount := 0
 	for _, participant := range event.Participants {
 		if participant.Role == models.RoleAttendee {
-			if _, exists := rsvpStatusMap[participant.UserID]; !exists {
+			if _, exists := eventStatusMap[participant.UserID]; !exists {
 				noResponseCount++
 			}
 		}
@@ -246,8 +246,8 @@ func (rc *RSVPController) GetEventAttendees(c *gin.Context) {
 	utils.SuccessResponse(c, 200, "Attendees retrieved successfully", attendeesSummary)
 }
 
-// GetUserRSVPStatus returns the RSVP status of the current user for an event
-func (rc *RSVPController) GetUserRSVPStatus(c *gin.Context) {
+// GetUserEventStatus returns the event status of the current user for an event
+func (esc *EventStatusController) GetUserEventStatus(c *gin.Context) {
 	eventID := c.Param("id")
 
 	eventObjectID, err := primitive.ObjectIDFromHex(eventID)
@@ -274,31 +274,31 @@ func (rc *RSVPController) GetUserRSVPStatus(c *gin.Context) {
 		return
 	}
 
-	rsvpCollection := database.GetCollection("rsvps")
-	var rsvp models.RSVP
+	eventStatusCollection := database.GetCollection("event_statuses")
+	var eventStatus models.EventStatus
 
-	err = rsvpCollection.FindOne(context.TODO(), bson.M{
+	err = eventStatusCollection.FindOne(context.TODO(), bson.M{
 		"event_id": eventObjectID,
 		"user_id":  userObjectID,
-	}).Decode(&rsvp)
+	}).Decode(&eventStatus)
 
 	if err == mongo.ErrNoDocuments {
-		utils.SuccessResponse(c, 200, "No RSVP status found", gin.H{
+		utils.SuccessResponse(c, 200, "No event status found", gin.H{
 			"status": "no_response",
 		})
 		return
 	}
 
 	if err != nil {
-		utils.ErrorResponse(c, 500, "Failed to fetch RSVP status")
+		utils.ErrorResponse(c, 500, "Failed to fetch event status")
 		return
 	}
 
-	utils.SuccessResponse(c, 200, "RSVP status retrieved successfully", rsvp.ToResponse())
+	utils.SuccessResponse(c, 200, "Event status retrieved successfully", eventStatus.ToResponse())
 }
 
 // GetAttendeesByStatus returns attendees filtered by status for an event (organizer only)
-func (rc *RSVPController) GetAttendeesByStatus(c *gin.Context) {
+func (esc *EventStatusController) GetAttendeesByStatus(c *gin.Context) {
 	eventID := c.Param("id")
 	status := c.Query("status") // Query parameter: going, maybe, not_going
 
@@ -369,26 +369,26 @@ func (rc *RSVPController) GetAttendeesByStatus(c *gin.Context) {
 	// Build filter
 	filter := bson.M{"event_id": eventObjectID}
 	if status != "" {
-		filter["status"] = models.RSVPStatus(status)
+		filter["status"] = models.EventStatusValue(status)
 	}
 
-	rsvpCollection := database.GetCollection("rsvps")
-	cursor, err := rsvpCollection.Find(context.TODO(), filter)
+	eventStatusCollection := database.GetCollection("event_statuses")
+	cursor, err := eventStatusCollection.Find(context.TODO(), filter)
 	if err != nil {
 		utils.ErrorResponse(c, 500, "Failed to fetch attendees")
 		return
 	}
 	defer cursor.Close(context.TODO())
 
-	var rsvps []models.RSVPResponse
-	if err = cursor.All(context.TODO(), &rsvps); err != nil {
+	var eventStatuses []models.EventStatusResponse
+	if err = cursor.All(context.TODO(), &eventStatuses); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process attendees")
 		return
 	}
 
-	if len(rsvps) == 0 {
-		rsvps = []models.RSVPResponse{}
+	if len(eventStatuses) == 0 {
+		eventStatuses = []models.EventStatusResponse{}
 	}
 
-	utils.SuccessResponse(c, 200, "Attendees retrieved successfully", rsvps)
+	utils.SuccessResponse(c, 200, "Attendees retrieved successfully", eventStatuses)
 }

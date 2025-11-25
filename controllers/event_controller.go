@@ -488,9 +488,9 @@ func (ec *EventController) DeleteEvent(c *gin.Context) {
 		return
 	}
 
-	// Also delete related RSVPs
-	rsvpCollection := database.GetCollection("rsvps")
-	rsvpCollection.DeleteMany(context.TODO(), bson.M{"event_id": eventObjectID})
+	// Also delete related event statuses
+	eventStatusCollection := database.GetCollection("event_statuses")
+	eventStatusCollection.DeleteMany(context.TODO(), bson.M{"event_id": eventObjectID})
 
 	utils.SuccessResponse(c, 200, "Event deleted successfully", nil)
 }

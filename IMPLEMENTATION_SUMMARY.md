@@ -36,7 +36,7 @@ I have successfully implemented all the requested features for the Event Managem
 ✅ **Delete events**
 
 - Only event organizers can delete events
-- Automatically deletes related RSVP responses
+- Automatically deletes related event status responses
 - Endpoint: `DELETE /api/v1/events/:id`
 
 ✅ **Update event details**
@@ -52,17 +52,17 @@ I have successfully implemented all the requested features for the Event Managem
 
 ---
 
-### **2. Response Management (RSVP)**
+### **2. Response Management (Event Status)**
 
 ✅ **Attendees indicate attendance status**
 
 - Three status options: "Going", "Maybe", "Not Going"
 - Each attendee can update their status
-- Endpoint: `POST /api/v1/events/:id/rsvp`
+- Endpoint: `POST /api/v1/events/:id/status`
 
 ✅ **Organizers view attendees and statuses**
 
-- Organizers can see all attendees and their RSVP statuses
+- Organizers can see all attendees and their event status responses
 - Summary includes counts by status
 - Endpoint: `GET /api/v1/events/:id/attendees`
 
@@ -71,9 +71,9 @@ I have successfully implemented all the requested features for the Event Managem
 - Organizers can filter attendees by their response
 - Endpoint: `GET /api/v1/events/:id/attendees/status?status=going`
 
-✅ **Track RSVP responses**
+✅ **Track event status responses**
 
-- Separate RSVP collection for response tracking
+- Separate event status collection for response tracking
 - Per-user per-event response tracking
 
 ---
@@ -115,11 +115,11 @@ I have successfully implemented all the requested features for the Event Managem
   - `Event` - Main event model
   - `EventResponse` - Event API response
   - `EventParticipant` - User participation info
-  - `RSVP` - Attendance response
+  - `EventStatus` - Attendance response
   - `CreateEventRequest` - Event creation request
   - `UpdateEventRequest` - Event update request
   - `InviteToEventRequest` - Invitation request
-  - `RSVPRequest` - RSVP status request
+  - `EventStatusRequest` - Event status request
 
 ### New Controller Files:
 
@@ -133,11 +133,11 @@ I have successfully implemented all the requested features for the Event Managem
   - `DeleteEvent()` - Delete event (organizer only)
   - `InviteToEvent()` - Invite users to event (organizer only)
 
-- **`controllers/rsvp_controller.go`** - RSVP management (4 methods):
+- **`controllers/event_status_controller.go`** - Event Status management (4 methods):
 
-  - `CreateOrUpdateRSVP()` - Create/update attendance response
+  - `CreateOrUpdateEventStatus()` - Create/update attendance response
   - `GetEventAttendees()` - View all attendees with summary (organizer only)
-  - `GetUserRSVPStatus()` - Get user's response for event
+  - `GetUserEventStatus()` - Get user's response for event
   - `GetAttendeesByStatus()` - Filter attendees by status (organizer only)
 
 - **`controllers/search_controller.go`** - Search & filtering (6 methods):
@@ -152,7 +152,7 @@ I have successfully implemented all the requested features for the Event Managem
 
 - **`routes/routes.go`** - Added all new routes:
   - 7 event management routes
-  - 4 RSVP management routes
+  - 4 event status management routes
   - 6 search and filtering routes
 
 ### Documentation:
@@ -171,7 +171,7 @@ I have successfully implemented all the requested features for the Event Managem
 ### Database Collections:
 
 1. **events** - Stores all events with participants
-2. **rsvps** - Stores attendance responses
+2. **event_statuses** - Stores attendance responses
 
 ### Existing Utilities Used:
 
@@ -191,7 +191,7 @@ I have successfully implemented all the requested features for the Event Managem
 ### Authorization:
 
 - **Organizers** can: create, update, delete, invite, view attendees
-- **Attendees** can: view event, submit/update RSVP
+- **Attendees** can: view event, submit/update event status
 - **Public** endpoints: register, login
 
 ---
@@ -211,7 +211,7 @@ I have successfully implemented all the requested features for the Event Managem
 ### Total Endpoints: 21 protected routes
 
 - Event Management: 7 routes
-- RSVP Management: 4 routes
+- Event Status Management: 4 routes
 - Search & Filtering: 6 routes (+ 2 advanced search variations)
 
 ### Request/Response Validations:
@@ -251,10 +251,10 @@ GET /api/v1/events/organized
 POST /api/v1/events/:id/invite
 ```
 
-### 4. Manage RSVPs
+### 4. Manage Event Status
 
 ```bash
-POST /api/v1/events/:id/rsvp
+POST /api/v1/events/:id/status
 GET /api/v1/events/:id/attendees
 ```
 
@@ -271,8 +271,8 @@ GET /api/v1/search/advanced?keyword=meeting&start_date=2024-12-01
 1. **Role-Based Access Control** - Seamless organizer/attendee distinction
 2. **Efficient Querying** - MongoDB $elemMatch for participant filtering
 3. **Flexible Search** - Combine multiple filters for precise results
-4. **RSVP Tracking** - Separate collection for response management
-5. **Automatic Cascading** - Delete events automatically removes RSVPs
+4. **Event Status Tracking** - Separate collection for response management
+5. **Automatic Cascading** - Delete events automatically removes event statuses
 6. **Validation** - Comprehensive input validation on all endpoints
 7. **Consistent API** - Standardized request/response format
 8. **RESTful Design** - Follows REST principles for all operations
@@ -283,7 +283,7 @@ GET /api/v1/search/advanced?keyword=meeting&start_date=2024-12-01
 
 - Add pagination to list endpoints
 - Add event categories/tags
-- Add email notifications for invitations and RSVP changes
+- Add email notifications for invitations and event status changes
 - Add event attachments/files
 - Add event comments/discussions
 - Add recurring events

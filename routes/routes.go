@@ -18,7 +18,7 @@ func SetupRoutes() *gin.Engine {
 	// Initialize controllers
 	authController := &controllers.AuthController{}
 	eventController := &controllers.EventController{}
-	rsvpController := &controllers.RSVPController{}
+	eventStatusController := &controllers.EventStatusController{}
 	searchController := &controllers.SearchController{}
 
 	// API version 1
@@ -45,11 +45,11 @@ func SetupRoutes() *gin.Engine {
 			protected.DELETE("/events/:id", eventController.DeleteEvent)
 			protected.POST("/events/:id/invite", eventController.InviteToEvent)
 
-			// RSVP Management routes
-			protected.POST("/events/:id/rsvp", rsvpController.CreateOrUpdateRSVP)
-			protected.GET("/events/:id/rsvp/status", rsvpController.GetUserRSVPStatus)
-			protected.GET("/events/:id/attendees", rsvpController.GetEventAttendees)
-			protected.GET("/events/:id/attendees/status", rsvpController.GetAttendeesByStatus)
+			// Event Status Management routes
+			protected.POST("/events/:id/status", eventStatusController.CreateOrUpdateEventStatus)
+			protected.GET("/events/:id/status", eventStatusController.GetUserEventStatus)
+			protected.GET("/events/:id/attendees", eventStatusController.GetEventAttendees)
+			protected.GET("/events/:id/attendees/status", eventStatusController.GetAttendeesByStatus)
 
 			// Search and Filtering routes
 			protected.POST("/search", searchController.SearchEvents)

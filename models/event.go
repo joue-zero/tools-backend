@@ -14,13 +14,13 @@ const (
 	RoleAttendee  EventRole = "attendee"
 )
 
-// RSVPStatus represents the attendance status for an event
-type RSVPStatus string
+// EventStatusValue represents the attendance status for an event
+type EventStatusValue string
 
 const (
-	StatusGoing    RSVPStatus = "going"
-	StatusMaybe    RSVPStatus = "maybe"
-	StatusNotGoing RSVPStatus = "not_going"
+	StatusGoing    EventStatusValue = "going"
+	StatusMaybe    EventStatusValue = "maybe"
+	StatusNotGoing EventStatusValue = "not_going"
 )
 
 // EventParticipant represents a user's participation in an event
@@ -29,12 +29,12 @@ type EventParticipant struct {
 	Role   EventRole          `json:"role" bson:"role" validate:"required,oneof=organizer attendee"`
 }
 
-// RSVP represents an attendee's response to an event invitation
-type RSVP struct {
+// EventStatus represents an attendee's response to an event invitation
+type EventStatus struct {
 	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	EventID   primitive.ObjectID `json:"event_id" bson:"event_id"`
 	UserID    primitive.ObjectID `json:"user_id" bson:"user_id"`
-	Status    RSVPStatus         `json:"status" bson:"status" validate:"required,oneof=going maybe not_going"`
+	Status    EventStatusValue   `json:"status" bson:"status" validate:"required,oneof=going maybe not_going"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt time.Time          `json:"updated_at" bson:"updated_at"`
 }
@@ -75,9 +75,9 @@ type UpdateEventRequest struct {
 	Location    string `json:"location" validate:"min=5,max=500"`
 }
 
-// RSVPRequest represents a request to update RSVP status
-type RSVPRequest struct {
-	Status RSVPStatus `json:"status" validate:"required,oneof=going maybe not_going"`
+// EventStatusRequest represents a request to update event status
+type EventStatusRequest struct {
+	Status EventStatusValue `json:"status" validate:"required,oneof=going maybe not_going"`
 }
 
 // EventResponse represents an event sent in API responses
@@ -93,12 +93,12 @@ type EventResponse struct {
 	UpdatedAt   time.Time          `json:"updated_at"`
 }
 
-// RSVPResponse represents an RSVP sent in API responses
-type RSVPResponse struct {
+// EventStatusResponse represents an event status sent in API responses
+type EventStatusResponse struct {
 	ID        primitive.ObjectID `json:"id"`
 	EventID   primitive.ObjectID `json:"event_id"`
 	UserID    primitive.ObjectID `json:"user_id"`
-	Status    RSVPStatus         `json:"status"`
+	Status    EventStatusValue   `json:"status"`
 	CreatedAt time.Time          `json:"created_at"`
 	UpdatedAt time.Time          `json:"updated_at"`
 }
@@ -118,14 +118,14 @@ func (e *Event) ToResponse() EventResponse {
 	}
 }
 
-// ToResponse converts RSVP to RSVPResponse
-func (r *RSVP) ToResponse() RSVPResponse {
-	return RSVPResponse{
-		ID:        r.ID,
-		EventID:   r.EventID,
-		UserID:    r.UserID,
-		Status:    r.Status,
-		CreatedAt: r.CreatedAt,
-		UpdatedAt: r.UpdatedAt,
+// ToResponse converts EventStatus to EventStatusResponse
+func (es *EventStatus) ToResponse() EventStatusResponse {
+	return EventStatusResponse{
+		ID:        es.ID,
+		EventID:   es.EventID,
+		UserID:    es.UserID,
+		Status:    es.Status,
+		CreatedAt: es.CreatedAt,
+		UpdatedAt: es.UpdatedAt,
 	}
 }
