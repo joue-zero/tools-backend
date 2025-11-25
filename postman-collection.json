@@ -1,188 +1,407 @@
 {
-	"info": {
-		"_postman_id": "tools-backend-api",
-		"name": "Tools Backend API",
-		"description": "Go RESTful API with MongoDB - Authentication endpoints",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-	},
-	"item": [
-		{
-			"name": "Health Check",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{base_url}}/health",
-					"host": [
-						"{{base_url}}"
-					],
-					"path": [
-						"health"
-					]
-				},
-				"description": "Check if the server is running"
-			},
-			"response": []
-		},
-		{
-			"name": "Authentication",
-			"item": [
-				{
-					"name": "Register User",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Save the JWT token from response",
-									"if (pm.response.code === 201) {",
-									"    const responseJson = pm.response.json();",
-									"    if (responseJson.data && responseJson.data.token) {",
-									"        pm.environment.set('jwt_token', responseJson.data.token);",
-									"        pm.environment.set('user_id', responseJson.data.user.id);",
-									"        pm.environment.set('user_email', responseJson.data.user.email);",
-									"    }",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/register",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"register"
-							]
-						},
-						"description": "Register a new user"
-					},
-					"response": []
-				},
-				{
-					"name": "Login User",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"// Save the JWT token from response",
-									"if (pm.response.code === 200) {",
-									"    const responseJson = pm.response.json();",
-									"    if (responseJson.data && responseJson.data.token) {",
-									"        pm.environment.set('jwt_token', responseJson.data.token);",
-									"        pm.environment.set('user_id', responseJson.data.user.id);",
-									"        pm.environment.set('user_email', responseJson.data.user.email);",
-									"    }",
-									"}"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "POST",
-						"header": [
-							{
-								"key": "Content-Type",
-								"value": "application/json"
-							}
-						],
-						"body": {
-							"mode": "raw",
-							"raw": "{\n    \"email\": \"john@example.com\",\n    \"password\": \"password123\"\n}"
-						},
-						"url": {
-							"raw": "{{base_url}}/api/v1/login",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"login"
-							]
-						},
-						"description": "Login with email and password"
-					},
-					"response": []
-				}
-			],
-			"description": "Authentication endpoints for user registration and login"
-		},
-		{
-			"name": "Protected Routes",
-			"item": [
-				{
-					"name": "Get Protected Data",
-					"request": {
-						"method": "GET",
-						"header": [
-							{
-								"key": "Authorization",
-								"value": "Bearer {{jwt_token}}"
-							}
-						],
-						"url": {
-							"raw": "{{base_url}}/api/v1/protected",
-							"host": [
-								"{{base_url}}"
-							],
-							"path": [
-								"api",
-								"v1",
-								"protected"
-							]
-						},
-						"description": "Example protected route that requires authentication"
-					},
-					"response": []
-				}
-			],
-			"description": "Protected routes that require JWT authentication"
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	],
-	"variable": [
-		{
-			"key": "base_url",
-			"value": "http://localhost:8080",
-			"type": "string"
-		}
-	]
+  "info": {
+    "_postman_id": "tools-backend-api",
+    "name": "Tools Backend API",
+    "description": "Go RESTful API with MongoDB - Full API endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/health",
+          "host": ["{{base_url}}"],
+          "path": ["health"]
+        },
+        "description": "Check if the server is running"
+      },
+      "response": []
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const r = pm.response.json();",
+                  "  if (r.success && r.data && r.data.token) {",
+                  "    pm.environment.set('jwt_token', r.data.token);",
+                  "    pm.environment.set('user_id', r.data.user.id);",
+                  "    pm.environment.set('user_email', r.data.user.email);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "register"]
+            },
+            "description": "Register a new user"
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const r = pm.response.json();",
+                  "  if (r.success && r.data && r.data.token) {",
+                  "    pm.environment.set('jwt_token', r.data.token);",
+                  "    pm.environment.set('user_id', r.data.user.id);",
+                  "    pm.environment.set('user_email', r.data.user.email);",
+                  "  }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "login"]
+            },
+            "description": "Login with email and password"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Event Management",
+      "item": [
+        {
+          "name": "Create Event",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Team Meeting\",\n  \"description\": \"Quarterly sync\",\n  \"date\": \"2025-12-01\",\n  \"time\": \"10:00\",\n  \"location\": \"Conference Room A\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/events",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events"]
+            },
+            "description": "Create a new event (organizer becomes creator)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event By ID",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", ":id"]
+            },
+            "description": "Retrieve a specific event"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Organized Events",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/organized",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", "organized"]
+            },
+            "description": "List events where the user is the organizer"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Invited Events",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/invited",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", "invited"]
+            },
+            "description": "List events the user is invited to"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Event",
+          "request": {
+            "method": "PUT",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Title\",\n  \"description\": \"Updated Description\",\n  \"date\": \"2025-12-02\",\n  \"time\": \"14:00\",\n  \"location\": \"Room B\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", ":id"]
+            },
+            "description": "Update event details (organizer only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Event",
+          "request": {
+            "method": "DELETE",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/:id",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", ":id"]
+            },
+            "description": "Delete an event (organizer only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Invite To Event",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_ids\": [\"userId1\", \"userId2\"]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/:id/invite",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", ":id", "invite"]
+            },
+            "description": "Invite a user to an event (organizer only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Event Status Management",
+      "item": [
+        {
+          "name": "Create/Update Event Status",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"going\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/:id/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", ":id", "status"]
+            },
+            "description": "Create or update the current user's status for an event"
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Event Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/:id/status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", ":id", "status"]
+            },
+            "description": "Retrieve the current user's status for an event"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Event Attendees",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/:id/attendees",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", ":id", "attendees"]
+            },
+            "description": "List all attendees with their statuses (organizer only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Attendees By Status",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/events/:id/attendees/status?status=going",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "events", ":id", "attendees", "status"],
+              "query": [{"key": "status", "value": "going"}]
+            },
+            "description": "Filter attendees by status (organizer only)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Search & Filtering",
+      "item": [
+        {
+          "name": "Search Events (Body)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"keyword\": \"meeting\",\n  \"start_date\": \"2025-11-01\",\n  \"end_date\": \"2025-12-31\",\n  \"user_role\": \"organizer\",\n  \"location\": \"New York\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/search",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "search"]
+            },
+            "description": "Search events with flexible filters"
+          },
+          "response": []
+        },
+        {
+          "name": "Advanced Search (Body)",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}, {"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"keyword\": \"conference\",\n  \"location\": \"New York\",\n  \"start_date\": \"2025-01-01\",\n  \"end_date\": \"2025-12-31\",\n  \"user_role\": \"invitee\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/search/advanced",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "search", "advanced"]
+            },
+            "description": "Complex search with multiple criteria (Body)"
+          },
+          "response": []
+        },
+        {
+          "name": "Advanced Search (Query)",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/search/advanced?keyword=meeting&start_date=2024-12-01&end_date=2024-12-31&user_role=organizer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "search", "advanced"],
+              "query": [
+                {"key": "keyword", "value": "meeting"},
+                {"key": "start_date", "value": "2024-12-01"},
+                {"key": "end_date", "value": "2024-12-31"},
+                {"key": "user_role", "value": "organizer"}
+              ]
+            },
+            "description": "Complex search with multiple criteria (Query)"
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Events By Keyword",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/search/keyword?q=meeting",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "search", "keyword"],
+              "query": [{"key": "q", "value": "meeting"}]
+            },
+            "description": "Retrieve events matching a keyword"
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Events By Date",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/search/date?start_date=2024-12-01&end_date=2024-12-31",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "search", "date"],
+              "query": [
+                {"key": "start_date", "value": "2024-12-01"},
+                {"key": "end_date", "value": "2024-12-31"}
+              ]
+            },
+            "description": "Retrieve events within a date range"
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Events By Role",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/search/role?role=organizer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "search", "role"],
+              "query": [{"key": "role", "value": "organizer"}]
+            },
+            "description": "Retrieve events where user has a specific role"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All User Events",
+          "request": {
+            "method": "GET",
+            "header": [{"key": "Authorization", "value": "Bearer {{jwt_token}}"}],
+            "url": {
+              "raw": "{{base_url}}/api/v1/all-events",
+              "host": ["{{base_url}}"],
+              "path": ["api", "v1", "all-events"]
+            },
+            "description": "All events for the user (organized + invited)"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [],
+  "variable": [{"key": "base_url", "value": "http://localhost:8080", "type": "string"}]
 }
