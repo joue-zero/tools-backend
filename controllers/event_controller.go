@@ -30,6 +30,22 @@ func (ec *EventController) CreateEvent(c *gin.Context) {
 		return
 	}
 
+	// Validate date is not in the past
+	eventDate, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		utils.ErrorResponse(c, 400, "Invalid date format. Use YYYY-MM-DD")
+		return
+	}
+
+	// Compare with today (start of day)
+	now := time.Now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	if eventDate.Before(today) {
+		utils.ErrorResponse(c, 400, "Event date cannot be in the past")
+		return
+	}
+
 	// Get user ID from context (set by auth middleware)
 	userIDInterface, exists := c.Get("user_id")
 	if !exists {
@@ -100,7 +116,7 @@ func (ec *EventController) GetOrganizedEvents(c *gin.Context) {
 	}
 
 	collection := database.GetCollection("events")
-	
+
 	// Find events where user is organizer
 	filter := bson.M{
 		"participants": bson.M{
@@ -153,7 +169,7 @@ func (ec *EventController) GetInvitedEvents(c *gin.Context) {
 	}
 
 	collection := database.GetCollection("events")
-	
+
 	// Find events where user is attendee
 	filter := bson.M{
 		"participants": bson.M{
@@ -177,9 +193,43 @@ func (ec *EventController) GetInvitedEvents(c *gin.Context) {
 		return
 	}
 
+	// Fetch statuses for these events for the current user
+	eventIDs := make([]primitive.ObjectID, len(events))
+	for i, e := range events {
+		eventIDs[i] = e.ID
+	}
+
+	statusCollection := database.GetCollection("event_statuses")
+	statusFilter := bson.M{
+		"event_id": bson.M{"$in": eventIDs},
+		"user_id":  userObjectID,
+	}
+
+	statusCursor, err := statusCollection.Find(context.TODO(), statusFilter)
+	if err != nil {
+		// Log error but continue, statuses will just be empty
+	}
+
+	statusMap := make(map[primitive.ObjectID]models.EventStatusValue)
+	if err == nil {
+		var statuses []models.EventStatus
+		if err = statusCursor.All(context.TODO(), &statuses); err == nil {
+			for _, s := range statuses {
+				statusMap[s.EventID] = s.Status
+			}
+		}
+		statusCursor.Close(context.TODO())
+	}
+
 	eventResponses := make([]models.EventResponse, 0, len(events))
 	for _, event := range events {
-		eventResponses = append(eventResponses, event.ToResponse())
+		resp := event.ToResponse()
+		if status, exists := statusMap[event.ID]; exists {
+			resp.MyStatus = status
+		} else {
+			resp.MyStatus = models.StatusNoResponse
+		}
+		eventResponses = append(eventResponses, resp)
 	}
 
 	utils.SuccessResponse(c, 200, "Invited events retrieved successfully", eventResponses)
@@ -188,7 +238,7 @@ func (ec *EventController) GetInvitedEvents(c *gin.Context) {
 // GetEventByID returns a specific event by ID
 func (ec *EventController) GetEventByID(c *gin.Context) {
 	eventID := c.Param("id")
-	
+
 	eventObjectID, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
 		utils.ErrorResponse(c, 400, "Invalid event ID")
@@ -197,7 +247,7 @@ func (ec *EventController) GetEventByID(c *gin.Context) {
 
 	collection := database.GetCollection("events")
 	var event models.Event
-	
+
 	err = collection.FindOne(context.TODO(), bson.M{"_id": eventObjectID}).Decode(&event)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -398,6 +448,21 @@ func (ec *EventController) UpdateEvent(c *gin.Context) {
 		updateDoc["description"] = req.Description
 	}
 	if req.Date != "" {
+		// Validate date is not in the past
+		eventDate, err := time.Parse("2006-01-02", req.Date)
+		if err != nil {
+			utils.ErrorResponse(c, 400, "Invalid date format. Use YYYY-MM-DD")
+			return
+		}
+
+		// Compare with today (start of day)
+		now := time.Now()
+		today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+		if eventDate.Before(today) {
+			utils.ErrorResponse(c, 400, "Event date cannot be in the past")
+			return
+		}
 		updateDoc["date"] = req.Date
 	}
 	if req.Time != "" {

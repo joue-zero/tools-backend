@@ -99,6 +99,7 @@ type EventResponse struct {
 	Time         string             `json:"time"`
 	Location     string             `json:"location"`
 	Participants []EventParticipant `json:"participants"`
+	MyStatus     EventStatusValue   `json:"my_status,omitempty"`
 	CreatedAt    time.Time          `json:"created_at"`
 	UpdatedAt    time.Time          `json:"updated_at"`
 }
