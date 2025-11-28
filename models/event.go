@@ -18,10 +18,20 @@ const (
 type EventStatusValue string
 
 const (
-	StatusGoing    EventStatusValue = "going"
-	StatusMaybe    EventStatusValue = "maybe"
-	StatusNotGoing EventStatusValue = "not_going"
+	StatusGoing      EventStatusValue = "going"
+	StatusMaybe      EventStatusValue = "maybe"
+	StatusNotGoing   EventStatusValue = "not_going"
+	StatusNoResponse EventStatusValue = "no_response"
 )
+
+// EventAttendeeDetail represents detailed attendee information
+type EventAttendeeDetail struct {
+	UserID    primitive.ObjectID `json:"user_id"`
+	Name      string             `json:"name"`
+	Email     string             `json:"email"`
+	Status    EventStatusValue   `json:"status"`
+	UpdatedAt time.Time          `json:"updated_at,omitempty"`
+}
 
 // EventParticipant represents a user's participation in an event
 type EventParticipant struct {
@@ -41,15 +51,15 @@ type EventStatus struct {
 
 // Event represents an event in the system
 type Event struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Title       string             `json:"title" bson:"title" validate:"required,min=3,max=200"`
-	Description string             `json:"description" bson:"description" validate:"required,min=10,max=2000"`
-	Date        string             `json:"date" bson:"date" validate:"required"` // ISO 8601 format: YYYY-MM-DD
-	Time        string             `json:"time" bson:"time" validate:"required"` // HH:MM format
-	Location    string             `json:"location" bson:"location" validate:"required,min=5,max=500"`
+	ID           primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Title        string             `json:"title" bson:"title" validate:"required,min=3,max=200"`
+	Description  string             `json:"description" bson:"description" validate:"required,min=10,max=2000"`
+	Date         string             `json:"date" bson:"date" validate:"required"` // ISO 8601 format: YYYY-MM-DD
+	Time         string             `json:"time" bson:"time" validate:"required"` // HH:MM format
+	Location     string             `json:"location" bson:"location" validate:"required,min=5,max=500"`
 	Participants []EventParticipant `json:"participants" bson:"participants"`
-	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
+	CreatedAt    time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt    time.Time          `json:"updated_at" bson:"updated_at"`
 }
 
 // CreateEventRequest represents the data for creating an event
@@ -82,15 +92,15 @@ type EventStatusRequest struct {
 
 // EventResponse represents an event sent in API responses
 type EventResponse struct {
-	ID          primitive.ObjectID `json:"id"`
-	Title       string             `json:"title"`
-	Description string             `json:"description"`
-	Date        string             `json:"date"`
-	Time        string             `json:"time"`
-	Location    string             `json:"location"`
+	ID           primitive.ObjectID `json:"id"`
+	Title        string             `json:"title"`
+	Description  string             `json:"description"`
+	Date         string             `json:"date"`
+	Time         string             `json:"time"`
+	Location     string             `json:"location"`
 	Participants []EventParticipant `json:"participants"`
-	CreatedAt   time.Time          `json:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at"`
+	CreatedAt    time.Time          `json:"created_at"`
+	UpdatedAt    time.Time          `json:"updated_at"`
 }
 
 // EventStatusResponse represents an event status sent in API responses
@@ -106,15 +116,15 @@ type EventStatusResponse struct {
 // ToResponse converts Event to EventResponse
 func (e *Event) ToResponse() EventResponse {
 	return EventResponse{
-		ID:          e.ID,
-		Title:       e.Title,
-		Description: e.Description,
-		Date:        e.Date,
-		Time:        e.Time,
-		Location:    e.Location,
+		ID:           e.ID,
+		Title:        e.Title,
+		Description:  e.Description,
+		Date:         e.Date,
+		Time:         e.Time,
+		Location:     e.Location,
 		Participants: e.Participants,
-		CreatedAt:   e.CreatedAt,
-		UpdatedAt:   e.UpdatedAt,
+		CreatedAt:    e.CreatedAt,
+		UpdatedAt:    e.UpdatedAt,
 	}
 }
 

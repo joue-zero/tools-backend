@@ -205,46 +205,89 @@ func (esc *EventStatusController) GetEventAttendees(c *gin.Context) {
 		return
 	}
 
-	eventStatuses := make([]models.EventStatusResponse, 0, len(eventStatusesList))
+	// Map UserID -> EventStatus
+	statusMap := make(map[primitive.ObjectID]models.EventStatus)
 	for _, es := range eventStatusesList {
-		eventStatuses = append(eventStatuses, es.ToResponse())
+		statusMap[es.UserID] = es
 	}
 
-	// Group attendees by status
-	attendeesSummary := gin.H{
-		"total":         len(event.Participants) - 1, // Total minus organizer
-		"going":         0,
-		"maybe":         0,
-		"not_going":     0,
-		"no_response":   0,
-		"attendees":     eventStatuses,
-	}
-
-	eventStatusMap := make(map[primitive.ObjectID]models.EventStatusValue)
-	for _, es := range eventStatuses {
-		eventStatusMap[es.UserID] = es.Status
-		switch es.Status {
-		case models.StatusGoing:
-			attendeesSummary["going"] = attendeesSummary["going"].(int) + 1
-		case models.StatusMaybe:
-			attendeesSummary["maybe"] = attendeesSummary["maybe"].(int) + 1
-		case models.StatusNotGoing:
-			attendeesSummary["not_going"] = attendeesSummary["not_going"].(int) + 1
+	// Collect all participant UserIDs (excluding organizer if desired, but usually organizer is also a participant)
+	// The requirement implies "attendees", usually meaning those invited.
+	// Let's include all participants with RoleAttendee.
+	var attendeeIDs []primitive.ObjectID
+	for _, p := range event.Participants {
+		if p.Role == models.RoleAttendee {
+			attendeeIDs = append(attendeeIDs, p.UserID)
 		}
 	}
 
-	// Count those without response
-	noResponseCount := 0
-	for _, participant := range event.Participants {
-		if participant.Role == models.RoleAttendee {
-			if _, exists := eventStatusMap[participant.UserID]; !exists {
-				noResponseCount++
+	// Fetch User details
+	userCollection := database.GetCollection("users")
+	userCursor, err := userCollection.Find(context.TODO(), bson.M{"_id": bson.M{"$in": attendeeIDs}})
+	if err != nil {
+		utils.ErrorResponse(c, 500, "Failed to fetch user details")
+		return
+	}
+	defer userCursor.Close(context.TODO())
+
+	var users []models.User
+	if err = userCursor.All(context.TODO(), &users); err != nil {
+		utils.ErrorResponse(c, 500, "Failed to process user details")
+		return
+	}
+
+	// Map UserID -> User
+	userMap := make(map[primitive.ObjectID]models.User)
+	for _, u := range users {
+		userMap[u.ID] = u
+	}
+
+	// Build response list
+	var attendeesDetails []models.EventAttendeeDetail
+	counts := gin.H{
+		"going":       0,
+		"maybe":       0,
+		"not_going":   0,
+		"no_response": 0,
+	}
+
+	for _, uid := range attendeeIDs {
+		user, userExists := userMap[uid]
+		if !userExists {
+			continue // Should not happen if data is consistent
+		}
+
+		detail := models.EventAttendeeDetail{
+			UserID: uid,
+			Name:   user.Name,
+			Email:  user.Email,
+			Status: models.StatusNoResponse,
+		}
+
+		if status, hasStatus := statusMap[uid]; hasStatus {
+			detail.Status = status.Status
+			detail.UpdatedAt = status.UpdatedAt
+
+			// Update counts
+			switch status.Status {
+			case models.StatusGoing:
+				counts["going"] = counts["going"].(int) + 1
+			case models.StatusMaybe:
+				counts["maybe"] = counts["maybe"].(int) + 1
+			case models.StatusNotGoing:
+				counts["not_going"] = counts["not_going"].(int) + 1
 			}
+		} else {
+			counts["no_response"] = counts["no_response"].(int) + 1
 		}
-	}
-	attendeesSummary["no_response"] = noResponseCount
 
-	utils.SuccessResponse(c, 200, "Attendees retrieved successfully", attendeesSummary)
+		attendeesDetails = append(attendeesDetails, detail)
+	}
+
+	counts["total"] = len(attendeesDetails)
+	counts["attendees"] = attendeesDetails
+
+	utils.SuccessResponse(c, 200, "Attendees retrieved successfully", counts)
 }
 
 // GetUserEventStatus returns the event status of the current user for an event
@@ -387,10 +430,57 @@ func (esc *EventStatusController) GetAttendeesByStatus(c *gin.Context) {
 		return
 	}
 
-	eventStatuses := make([]models.EventStatusResponse, 0, len(eventStatusesList))
+	// Map UserID -> EventStatus
+	statusMap := make(map[primitive.ObjectID]models.EventStatus)
+	var userIDs []primitive.ObjectID
 	for _, es := range eventStatusesList {
-		eventStatuses = append(eventStatuses, es.ToResponse())
+		statusMap[es.UserID] = es
+		userIDs = append(userIDs, es.UserID)
 	}
 
-	utils.SuccessResponse(c, 200, "Attendees retrieved successfully", eventStatuses)
+	if len(userIDs) == 0 {
+		utils.SuccessResponse(c, 200, "Attendees retrieved successfully", []models.EventAttendeeDetail{})
+		return
+	}
+
+	// Fetch User details
+	userCollection := database.GetCollection("users")
+	userCursor, err := userCollection.Find(context.TODO(), bson.M{"_id": bson.M{"$in": userIDs}})
+	if err != nil {
+		utils.ErrorResponse(c, 500, "Failed to fetch user details")
+		return
+	}
+	defer userCursor.Close(context.TODO())
+
+	var users []models.User
+	if err = userCursor.All(context.TODO(), &users); err != nil {
+		utils.ErrorResponse(c, 500, "Failed to process user details")
+		return
+	}
+
+	// Map UserID -> User
+	userMap := make(map[primitive.ObjectID]models.User)
+	for _, u := range users {
+		userMap[u.ID] = u
+	}
+
+	// Build response list
+	var attendeesDetails []models.EventAttendeeDetail
+	for _, uid := range userIDs {
+		user, userExists := userMap[uid]
+		if !userExists {
+			continue
+		}
+
+		es := statusMap[uid]
+		attendeesDetails = append(attendeesDetails, models.EventAttendeeDetail{
+			UserID:    uid,
+			Name:      user.Name,
+			Email:     user.Email,
+			Status:    es.Status,
+			UpdatedAt: es.UpdatedAt,
+		})
+	}
+
+	utils.SuccessResponse(c, 200, "Attendees retrieved successfully", attendeesDetails)
 }
