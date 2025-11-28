@@ -47,6 +47,7 @@ POST /api/v1/login
 | GET    | `/api/v1/search/keyword?q=meeting`   | Search by keyword       | q (required)                                       |
 | GET    | `/api/v1/search/date`                | Filter by date          | start_date, end_date                               |
 | GET    | `/api/v1/search/role?role=organizer` | Filter by role          | role (required)                                    |
+| GET    | `/api/v1/users/search?q=john`        | Search users to invite  | q (required)                                       |
 
 ---
 
@@ -133,6 +134,12 @@ curl -X GET "http://localhost:8080/api/v1/search/role?role=organizer" \
 
 ```bash
 curl -X GET "http://localhost:8080/api/v1/events/{eventId}/attendees/status?status=going" \
+```
+
+### 11. Search Users to Invite
+
+```bash
+curl -X GET "http://localhost:8080/api/v1/users/search?q=john" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 

@@ -20,6 +20,7 @@ func SetupRoutes() *gin.Engine {
 	eventController := &controllers.EventController{}
 	eventStatusController := &controllers.EventStatusController{}
 	searchController := &controllers.SearchController{}
+	userController := &controllers.UserController{}
 
 	// API version 1
 	v1 := router.Group("/api/v1")
@@ -59,6 +60,9 @@ func SetupRoutes() *gin.Engine {
 			protected.GET("/search/date", searchController.FilterEventsByDate)
 			protected.GET("/search/role", searchController.FilterEventsByRole)
 			protected.GET("/all-events", searchController.GetAllUserEvents)
+
+			// User routes
+			protected.GET("/users/search", userController.SearchUsers)
 		}
 	}
 
