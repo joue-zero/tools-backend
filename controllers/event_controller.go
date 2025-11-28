@@ -118,17 +118,18 @@ func (ec *EventController) GetOrganizedEvents(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var events []models.EventResponse
+	var events []models.Event
 	if err = cursor.All(context.TODO(), &events); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process events")
 		return
 	}
 
-	if len(events) == 0 {
-		events = []models.EventResponse{}
+	eventResponses := make([]models.EventResponse, 0, len(events))
+	for _, event := range events {
+		eventResponses = append(eventResponses, event.ToResponse())
 	}
 
-	utils.SuccessResponse(c, 200, "Organized events retrieved successfully", events)
+	utils.SuccessResponse(c, 200, "Organized events retrieved successfully", eventResponses)
 }
 
 // GetInvitedEvents returns all events the user is invited to
@@ -170,17 +171,18 @@ func (ec *EventController) GetInvitedEvents(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var events []models.EventResponse
+	var events []models.Event
 	if err = cursor.All(context.TODO(), &events); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process events")
 		return
 	}
 
-	if len(events) == 0 {
-		events = []models.EventResponse{}
+	eventResponses := make([]models.EventResponse, 0, len(events))
+	for _, event := range events {
+		eventResponses = append(eventResponses, event.ToResponse())
 	}
 
-	utils.SuccessResponse(c, 200, "Invited events retrieved successfully", events)
+	utils.SuccessResponse(c, 200, "Invited events retrieved successfully", eventResponses)
 }
 
 // GetEventByID returns a specific event by ID

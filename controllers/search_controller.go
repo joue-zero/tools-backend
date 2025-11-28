@@ -61,19 +61,20 @@ func (sc *SearchController) SearchEvents(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var events []models.EventResponse
+	var events []models.Event
 	if err = cursor.All(context.TODO(), &events); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process events")
 		return
 	}
 
-	if len(events) == 0 {
-		events = []models.EventResponse{}
+	eventResponses := make([]models.EventResponse, 0, len(events))
+	for _, event := range events {
+		eventResponses = append(eventResponses, event.ToResponse())
 	}
 
 	utils.SuccessResponse(c, 200, "Search completed successfully", gin.H{
-		"total_results": len(events),
-		"events":        events,
+		"total_results": len(eventResponses),
+		"events":        eventResponses,
 	})
 }
 
@@ -115,17 +116,18 @@ func (sc *SearchController) GetAllUserEvents(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var events []models.EventResponse
+	var events []models.Event
 	if err = cursor.All(context.TODO(), &events); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process events")
 		return
 	}
 
-	if len(events) == 0 {
-		events = []models.EventResponse{}
+	eventResponses := make([]models.EventResponse, 0, len(events))
+	for _, event := range events {
+		eventResponses = append(eventResponses, event.ToResponse())
 	}
 
-	utils.SuccessResponse(c, 200, "All user events retrieved successfully", events)
+	utils.SuccessResponse(c, 200, "All user events retrieved successfully", eventResponses)
 }
 
 // FilterEventsByDate returns events within a date range
@@ -182,17 +184,18 @@ func (sc *SearchController) FilterEventsByDate(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var events []models.EventResponse
+	var events []models.Event
 	if err = cursor.All(context.TODO(), &events); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process events")
 		return
 	}
 
-	if len(events) == 0 {
-		events = []models.EventResponse{}
+	eventResponses := make([]models.EventResponse, 0, len(events))
+	for _, event := range events {
+		eventResponses = append(eventResponses, event.ToResponse())
 	}
 
-	utils.SuccessResponse(c, 200, "Events filtered by date successfully", events)
+	utils.SuccessResponse(c, 200, "Events filtered by date successfully", eventResponses)
 }
 
 // FilterEventsByKeyword returns events matching a keyword in title or description
@@ -245,19 +248,20 @@ func (sc *SearchController) FilterEventsByKeyword(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var events []models.EventResponse
+	var events []models.Event
 	if err = cursor.All(context.TODO(), &events); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process events")
 		return
 	}
 
-	if len(events) == 0 {
-		events = []models.EventResponse{}
+	eventResponses := make([]models.EventResponse, 0, len(events))
+	for _, event := range events {
+		eventResponses = append(eventResponses, event.ToResponse())
 	}
 
 	utils.SuccessResponse(c, 200, "Events filtered by keyword successfully", gin.H{
 		"keyword": keyword,
-		"results": events,
+		"results": eventResponses,
 	})
 }
 
@@ -316,17 +320,18 @@ func (sc *SearchController) FilterEventsByRole(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var events []models.EventResponse
+	var events []models.Event
 	if err = cursor.All(context.TODO(), &events); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process events")
 		return
 	}
 
-	if len(events) == 0 {
-		events = []models.EventResponse{}
+	eventResponses := make([]models.EventResponse, 0, len(events))
+	for _, event := range events {
+		eventResponses = append(eventResponses, event.ToResponse())
 	}
 
-	utils.SuccessResponse(c, 200, "Events filtered by role successfully", events)
+	utils.SuccessResponse(c, 200, "Events filtered by role successfully", eventResponses)
 }
 
 // Helper function to build search filter
@@ -436,20 +441,21 @@ func (sc *SearchController) AdvancedSearch(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var events []models.EventResponse
+	var events []models.Event
 	if err = cursor.All(context.TODO(), &events); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process events")
 		return
 	}
 
-	if len(events) == 0 {
-		events = []models.EventResponse{}
+	eventResponses := make([]models.EventResponse, 0, len(events))
+	for _, event := range events {
+		eventResponses = append(eventResponses, event.ToResponse())
 	}
 
 	utils.SuccessResponse(c, 200, "Advanced search completed successfully", gin.H{
 		"filters":       req,
-		"total_results": len(events),
-		"events":        events,
+		"total_results": len(eventResponses),
+		"events":        eventResponses,
 	})
 }
 

@@ -199,14 +199,15 @@ func (esc *EventStatusController) GetEventAttendees(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var eventStatuses []models.EventStatusResponse
-	if err = cursor.All(context.TODO(), &eventStatuses); err != nil {
+	var eventStatusesList []models.EventStatus
+	if err = cursor.All(context.TODO(), &eventStatusesList); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process attendees")
 		return
 	}
 
-	if len(eventStatuses) == 0 {
-		eventStatuses = []models.EventStatusResponse{}
+	eventStatuses := make([]models.EventStatusResponse, 0, len(eventStatusesList))
+	for _, es := range eventStatusesList {
+		eventStatuses = append(eventStatuses, es.ToResponse())
 	}
 
 	// Group attendees by status
@@ -380,14 +381,15 @@ func (esc *EventStatusController) GetAttendeesByStatus(c *gin.Context) {
 	}
 	defer cursor.Close(context.TODO())
 
-	var eventStatuses []models.EventStatusResponse
-	if err = cursor.All(context.TODO(), &eventStatuses); err != nil {
+	var eventStatusesList []models.EventStatus
+	if err = cursor.All(context.TODO(), &eventStatusesList); err != nil {
 		utils.ErrorResponse(c, 500, "Failed to process attendees")
 		return
 	}
 
-	if len(eventStatuses) == 0 {
-		eventStatuses = []models.EventStatusResponse{}
+	eventStatuses := make([]models.EventStatusResponse, 0, len(eventStatusesList))
+	for _, es := range eventStatusesList {
+		eventStatuses = append(eventStatuses, es.ToResponse())
 	}
 
 	utils.SuccessResponse(c, 200, "Attendees retrieved successfully", eventStatuses)
